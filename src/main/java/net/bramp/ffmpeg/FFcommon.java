@@ -4,7 +4,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.io.CharStreams;
-import net.bramp.ffmpeg.io.ProcessUtils;
 
 import javax.annotation.Nonnull;
 import java.io.BufferedReader;
@@ -13,7 +12,7 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -46,11 +45,11 @@ abstract class FFcommon {
   protected void throwOnError(Process p) throws IOException {
     try {
       // TODO In java 8 use waitFor(long timeout, TimeUnit unit)
-      if (ProcessUtils.waitForWithTimeout(p, 1, TimeUnit.SECONDS) != 0) {
+      if (!p.waitFor(120, TimeUnit.SECONDS)) {
         // TODO Parse the error
         throw new IOException(path + " returned non-zero exit status. Check stdout.");
       }
-    } catch (TimeoutException e) {
+    } catch (InterruptedException e) {
       throw new IOException("Timed out waiting for " + path + " to finish.");
     }
   }
@@ -98,7 +97,7 @@ abstract class FFcommon {
    * @param args The arguments to pass to the binary.
    * @throws IOException If there is a problem executing the binary.
    */
-  public void run(List<String> args) throws IOException {
+  public String run(List<String> args) throws IOException {
     checkNotNull(args);
 
     Process p = runFunc.run(path(args));
@@ -108,10 +107,9 @@ abstract class FFcommon {
       // TODO Move the copy onto a thread, so that FFmpegProgressListener can be on this thread.
 
       // Now block reading ffmpeg's stdout. We are effectively throwing away the output.
-      CharStreams.copy(wrapInReader(p), System.out); // TODO Should I be outputting to stdout?
 
-      throwOnError(p);
-
+      //      throwOnError(p);
+      return wrapInReader(p).lines().collect(Collectors.joining("\n"));
     } finally {
       p.destroy();
     }

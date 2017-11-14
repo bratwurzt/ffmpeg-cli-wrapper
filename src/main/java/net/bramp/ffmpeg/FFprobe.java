@@ -73,9 +73,9 @@ public class FFprobe extends FFcommon {
   }
 
   @Override
-  public void run(List<String> args) throws IOException {
+  public String run(List<String> args) throws IOException {
     checkIfFFprobe();
-    super.run(args);
+    return super.run(args);
   }
 
   // TODO Add Probe Inputstream

@@ -1,6 +1,7 @@
 package net.bramp.ffmpeg;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.io.CharStreams;
 import net.bramp.ffmpeg.builder.FFmpegBuilder;
 import net.bramp.ffmpeg.info.Codec;
 import net.bramp.ffmpeg.info.Format;
@@ -179,9 +180,9 @@ public class FFmpeg extends FFcommon {
   }
 
   @Override
-  public void run(List<String> args) throws IOException {
+  public String run(List<String> args) throws IOException {
     checkIfFFmpeg();
-    super.run(args);
+    return super.run(args);
   }
 
   public void run(FFmpegBuilder builder) throws IOException {
@@ -190,17 +191,18 @@ public class FFmpeg extends FFcommon {
 
   public void run(FFmpegBuilder builder, @Nullable ProgressListener listener) throws IOException {
     checkNotNull(builder);
-
+    String br;
     if (listener != null) {
       try (ProgressParser progressParser = createProgressParser(listener)) {
         progressParser.start();
         builder = builder.addProgress(progressParser.getUri());
 
-        run(builder.build());
+        br = run(builder.build());
       }
     } else {
-      run(builder.build());
+      br = run(builder.build());
     }
+    builder.getStdOutput().append(br);
   }
 
   @CheckReturnValue

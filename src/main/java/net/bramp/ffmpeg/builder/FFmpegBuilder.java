@@ -76,6 +76,7 @@ public class FFmpegBuilder {
 
   // Output
   final List<FFmpegOutputBuilder> outputs = new ArrayList<>();
+  Appendable stdOutput;
 
   // Filters
   String complexFilter;
@@ -165,6 +166,15 @@ public class FFmpegBuilder {
 
   public FFmpegBuilder addProgress(URI uri) {
     this.progress = checkNotNull(uri);
+    return this;
+  }
+
+  public Appendable getStdOutput() {
+    return stdOutput;
+  }
+
+  public FFmpegBuilder setStdOutput(Appendable stdOutput) {
+    this.stdOutput = stdOutput;
     return this;
   }
 
